@@ -61,6 +61,7 @@ class App extends React.Component {
       this.provider.getSigner(0)
     );
     console.log("initialize!! 2");
+    // this.emitListen();
   }
 
   // The next to methods are needed to start and stop polling data. While
@@ -100,7 +101,7 @@ class App extends React.Component {
 
     // Fetching the token data and the user's balance are specific to this
     // sample project, but you can reuse the same initialization pattern.
-    this.intializeEthers();
+    await this.intializeEthers();
     // this._getTokenData();
     // this._startPollingData();
     // initializeLendingPool();
@@ -165,6 +166,43 @@ class App extends React.Component {
     return false;
   }
 
+  async logz() {
+    const logs = await this.provider.getLogs({});
+    console.log('logs',logs);
+    ethers.utils.defaultAbiCoder.decode(
+        [ 'uint', 'uint', 'uint', 'uint','uint' ],
+        logs[0].data
+    ).forEach(bigNum => console.log(bigNum.toNumber()));
+  }
+
+  async deposit() {
+    (await this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT)).wait().then((response) => {
+      console.log("deposit response!!!",response);      
+      this.logz();
+      // var logPromise = this.provider.getLogs();
+      // logPromise.then(function(logs) {
+      //     console.log("Printing array of events:");
+      //     let events = logs.map((log) => this.stableRatioSwap.parseLog(log))
+      //     console.log(events);
+      // }).catch(function(err){
+      //     console.log(err);
+      // });
+    });
+    
+  }
+
+  emitListen() {
+    this.provider.on('Deposit', (event) => {
+      console.log('Event : ', event);  //Event object
+    });
+  }
+
+  componentDidUpdate() {
+    if (this.provider){
+      this.emitListen();
+    }
+  }
+
   render() {
     // Ethereum wallets inject the window.ethereum object. If it hasn't been
     // injected, we instruct the user to install MetaMask.
@@ -196,7 +234,6 @@ class App extends React.Component {
     // }
 
     // If everything is loaded, we render the application.
-    //250000000000000000 wei = 0.25 ether
     return (
       <div
         style={{
@@ -204,11 +241,7 @@ class App extends React.Component {
             transform: 'translate(-50%, -50%)'
         }}
       >
-        <GetLoanButton deposit={() => {
-              this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT).then((response) => {
-                console.log("!!!",response);
-              });
-              }} 
+        <GetLoanButton deposit={() => {this.deposit()}} 
         />
       </div>
     );
