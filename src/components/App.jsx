@@ -119,14 +119,12 @@ class App extends React.Component {
     console.log('selectedAddress',selectedAddress);
     // Once we have the address, we can initialize the application.
 
-    console.log("checknetwork",this.checkNetwork())
     // First we check the network
     if (!this.checkNetwork()) {
       return;
     }
 
     this.initialize(selectedAddress);
-    console.log('    this.initialize(selectedAddress);'    );
 
     // We reinitialize it whenever the user changes their account.
     window.ethereum.on('accountsChanged', ([newAddress]) => {
@@ -200,12 +198,18 @@ class App extends React.Component {
     // If everything is loaded, we render the application.
     //250000000000000000 wei = 0.25 ether
     return (
-      <div>
+      <div
+        style={{
+            position: 'absolute', left: '50%', top: '50%',
+            transform: 'translate(-50%, -50%)'
+        }}
+      >
         <GetLoanButton deposit={() => {
-          this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT).then((response) => {
-            console.log("!!!",response);
-          });
-        }} />
+              this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT).then((response) => {
+                console.log("!!!",response);
+              });
+              }} 
+        />
       </div>
     );
   }
