@@ -13,16 +13,18 @@ import contractAddress from "../contracts/contract-address.json";
 // logic. They just render HTML.
 import { NoWalletDetected } from './NoWalletDetected';
 import { ConnectWallet } from './ConnectWallet';
-// import { Loading } from './Loading';
+
+import Grid from '@material-ui/core/Grid';
 
 // import {initializeLendingPool} from '../Aave';
-import GetLoanButton from './GetLoanButton';
+import GenericButton from './GenericButton';
+import DepositsGrid from './DepositsGrid';
+import Utils from '../Utils';
 
 // This is the Hardhat Network id, you might change it in the hardhat.config.js
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
 // to use when deploying to other networks.
 const HARDHAT_NETWORK_ID = '31337';
-const DEPOSIT_AMOUNT = ethers.utils.parseEther('0.1');
 
 class App extends React.Component {
   constructor(props) {
@@ -36,10 +38,19 @@ class App extends React.Component {
       // The user's address and balance
       selectedAddress: undefined,
       transactionError: undefined,
-      networkError: undefined
+      networkError: undefined,
+      utils: undefined,
+      deposits: {
+        'TUSD': 0.0,
+        'USDC': 0.0,
+        'USDT': 0.0,
+        'DAI': 0.0,
+        'BUSD': 0.0
+      }
     };
 
     this.state = this.initialState;
+    this.updateDepositState = this.updateDepositState.bind(this);
   }
 
   componentWillUnmount() {
@@ -50,7 +61,6 @@ class App extends React.Component {
 
   async intializeEthers() {
     // We first initialize ethers by creating a provider using window.ethereum
-    console.log("initialize!! 1");
     this.provider = new ethers.providers.Web3Provider(window.ethereum);
 
     // When, we initialize the contract using that provider and the token's
@@ -60,8 +70,8 @@ class App extends React.Component {
       TokenArtifact.abi,
       this.provider.getSigner(0)
     );
-    console.log("initialize!! 2");
-    // this.emitListen();
+
+    this.setState({utils: new Utils(this.stableRatioSwap, this.provider)});
   }
 
   // The next to methods are needed to start and stop polling data. While
@@ -93,7 +103,7 @@ class App extends React.Component {
 
     // We first store the user's address in the component's state
     this.setState({
-      selectedAddress: userAddress,
+      selectedAddress: userAddress
     });
 
     // Then, we initialize ethers, fetch the token's data, and start polling
@@ -105,9 +115,6 @@ class App extends React.Component {
     // this._getTokenData();
     // this._startPollingData();
     // initializeLendingPool();
-    console.log("createuser!!")
-    let response = await this.stableRatioSwap.createUser(this.state.selectedAddress,DEPOSIT_AMOUNT);
-    console.log(response);
   }
 
   async connectWallet() {
@@ -166,57 +173,34 @@ class App extends React.Component {
     return false;
   }
 
-  async logz() {
-    const logs = await this.provider.getLogs({});
-    console.log('logs',logs);
-    ethers.utils.defaultAbiCoder.decode(
-        [ 'uint', 'uint', 'uint', 'uint','uint' ],
-        logs[0].data
-    ).forEach(bigNum => console.log(bigNum.toNumber()));
-  }
-
-  async deposit() {
-    (await this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT)).wait().then((response) => {
-      console.log("deposit response!!!",response);      
-      this.logz();
-      // var logPromise = this.provider.getLogs();
-      // logPromise.then(function(logs) {
-      //     console.log("Printing array of events:");
-      //     let events = logs.map((log) => this.stableRatioSwap.parseLog(log))
-      //     console.log(events);
-      // }).catch(function(err){
-      //     console.log(err);
-      // });
-    });
-    
-  }
-
-  emitListen() {
-    this.provider.on('Deposit', (event) => {
-      console.log('Event : ', event);  //Event object
-    });
-  }
-
   componentDidUpdate() {
-    if (this.provider){
-      this.emitListen();
-    }
+    console.log('updated component')    
   }
+
+  updateDepositState() {
+    // let result = 
+    this.state.utils.getAllStablecoinDeposits().then(result =>
+      this.setState({deposits: result}, () => {
+      console.log("deposits updateDepositState",this.state.deposits)
+    }));
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if(nextState !== this.state || JSON.stringify(nextState.deposits) != JSON.stringify(this.state.deposits)){
+         this.forceUpdate();
+         return true;
+    }
+    return false;
+ }
 
   render() {
+    console.log("render!!!!!",this.state.deposits);
     // Ethereum wallets inject the window.ethereum object. If it hasn't been
     // injected, we instruct the user to install MetaMask.
     if (window.ethereum === undefined) {
       return <NoWalletDetected />;
     }
 
-    // The next thing we need to do, is to ask the user to connect their wallet.
-    // When the wallet gets connected, we are going to save the users's address
-    // in the component's state. So, if it hasn't been saved yet, we have
-    // to show the ConnectWallet component.
-    //
-    // Note that we pass it a callback that is going to be called when the user
-    // clicks a button. This callback just calls the _connectWallet method.
     if (!this.state.selectedAddress) {
       return (
         <ConnectWallet
@@ -227,22 +211,34 @@ class App extends React.Component {
       );
     }
 
-    // If the token data or the user's balance hasn't loaded yet, we show
-    // a loading component.
-    // if (!this.state.tokenData || !this.state.balance) {
-    //   return <Loading />;
-    // }
-
-    // If everything is loaded, we render the application.
     return (
       <div
         style={{
             position: 'absolute', left: '50%', top: '50%',
-            transform: 'translate(-50%, -50%)'
+            transform: 'translate(-50%, -50%)',
+            display: 'inline-block'
         }}
       >
-        <GetLoanButton deposit={() => {this.deposit()}} 
-        />
+      <Grid
+        container
+        direction="row"
+        justify="center"
+        alignItems="center"
+      >
+        <GenericButton onClick={() => this.state.utils.createUser(this.state.selectedAddress)} label="Register Account" />
+        <GenericButton onClick={() => this.state.utils.deposit()} label="Get 100 TUSD Loan" />
+        <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
+        <GenericButton onClick={() => this.state.utils.swapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
+      </Grid>
+      <Grid
+        container
+        direction="row"
+        justify="center"
+        alignItems="center"
+      >
+        {"deposits!!!"}{JSON.stringify(this.state.deposits)} 
+        <DepositsGrid key={Object.values(this.state.deposits).reduce((a, b) => a + b)} deposits={this.state.deposits} /> 
+      </Grid>
       </div>
     );
   }
