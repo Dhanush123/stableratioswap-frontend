@@ -53,12 +53,6 @@ class App extends React.Component {
     this.updateDepositState = this.updateDepositState.bind(this);
   }
 
-  componentWillUnmount() {
-    // We poll the user's balance, so we have to stop doing that when Dapp
-    // gets unmounted
-    // this._stopPollingData();
-  }
-
   async intializeEthers() {
     // We first initialize ethers by creating a provider using window.ethereum
     this.provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -74,25 +68,6 @@ class App extends React.Component {
     this.setState({utils: new Utils(this.stableRatioSwap, this.provider)});
   }
 
-  // The next to methods are needed to start and stop polling data. While
-  // the data being polled here is specific to this example, you can use this
-  // pattern to read any data from your contracts.
-  //
-  // Note that if you don't need it to update in near real time, you probably
-  // don't need to poll it. If that's the case, you can just fetch it when you
-  // initialize the app, as we do with the token data.
-  // _startPollingData() {
-  //   this._pollDataInterval = setInterval(() => this._updateBalance(), 1000);
-
-  //   // We run it once immediately so we don't have to wait for it
-  //   this._updateBalance();
-  // }
-
-  // _stopPollingData() {
-  //   clearInterval(this._pollDataInterval);
-  //   this._pollDataInterval = undefined;
-  // }
-
   // This method just clears part of the state.
   dismissNetworkError() {
     this.setState({ networkError: undefined });
@@ -106,15 +81,8 @@ class App extends React.Component {
       selectedAddress: userAddress
     });
 
-    // Then, we initialize ethers, fetch the token's data, and start polling
-    // for the user's balance.
-
-    // Fetching the token data and the user's balance are specific to this
-    // sample project, but you can reuse the same initialization pattern.
+    // Then, we initialize ethers
     await this.intializeEthers();
-    // this._getTokenData();
-    // this._startPollingData();
-    // initializeLendingPool();
   }
 
   async connectWallet() {
@@ -136,7 +104,6 @@ class App extends React.Component {
 
     // We reinitialize it whenever the user changes their account.
     window.ethereum.on('accountsChanged', ([newAddress]) => {
-      // this._stopPollingData();
       // `accountsChanged` event can be triggered with an undefined newAddress.
       // This happens when the user removes the Dapp from the "Connected
       // list of sites allowed access to your addresses" (Metamask > Settings > Connections)
@@ -150,7 +117,6 @@ class App extends React.Component {
 
     // We reset the dapp state if the network is changed
     window.ethereum.on('networkChanged', () => {
-      // this._stopPollingData();
       this.resetState();
     });
   }
@@ -174,7 +140,6 @@ class App extends React.Component {
   }
 
   updateDepositState() {
-    // let result = 
     this.state.utils.getAllStablecoinDeposits().then(result =>
       this.setState({deposits: result}, () => {
       console.log("deposits updateDepositState",this.state.deposits)
@@ -182,13 +147,11 @@ class App extends React.Component {
   }
 
   render() {
-    // console.log("render!!!!!",this.state.deposits);
     // Ethereum wallets inject the window.ethereum object. If it hasn't been
     // injected, we instruct the user to install MetaMask.
     if (window.ethereum === undefined) {
       return <NoWalletDetected />;
     }
-    // console.log("render address",this.state.selectedAddress)
 
     if (!this.state.selectedAddress) {
       return (
