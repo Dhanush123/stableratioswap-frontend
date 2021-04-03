@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-const DEPOSIT_AMOUNT = ethers.utils.parseEther('0.1');
+const DEPOSIT_AMOUNT = 100;//ethers.utils.parseEther('0.1');
 
 class Utils {
 
@@ -23,28 +23,32 @@ class Utils {
       let response = await this.stableRatioSwap.createUser(selectedAddress);
       console.log("createUser response!", response);    
     } catch(e) {
-        console.log(e);
+      console.log("createUser exception", e);
     }
   }
 
-  async deposit() {
+  async deposit(selectedAddress) {
     try {
-      (await this.stableRatioSwap.deposit(this.state.selectedAddress,DEPOSIT_AMOUNT)).wait().then((response) => {
+      console.log("deposit address",selectedAddress,DEPOSIT_AMOUNT);
+      (await this.stableRatioSwap.deposit(selectedAddress,DEPOSIT_AMOUNT)).wait().then((response) => {
         console.log("deposit response!",response);      
       });
     } catch(e) {
-        console.log(e);
+      console.log("deposit exception", e);
     }
   }
 
   async getAllStablecoinDeposits(selectedAddress) {
+    (await this.stableRatioSwap.getAllStablecoinDeposits()).wait().then((response) => {
+      console.log("getAllStablecoinDeposits response!",response);      
+    });
     let logs = await this.provider.getLogs({
       from: selectedAddress,
       topic: this.stableRatioSwap.interface.events.Deposit  
     });
     console.log('getAllStablecoinDeposits logs',logs);
     //TODO: check if 0 or depositValues.length is latest log
-    let depositValues = (logs === undefined || logs.length == 0) ? [0.1,0.1,0.1,0.1,0.1] : 
+    let depositValues = (logs === undefined || logs.length == 0) ? [0.0,0.0,0.0,0.0,0.0] : 
     ethers.utils.defaultAbiCoder.decode(
         [ 'uint', 'uint', 'uint', 'uint','uint' ],
         logs[0].data
@@ -60,6 +64,12 @@ class Utils {
   }
 
   async swapStablecoinDeposit() {
+    try {
+      let response = await this.stableRatioSwap.swapStablecoinDeposit();
+      console.log("swapStablecoinDeposit response!", response);    
+    } catch(e) {
+        console.log("swapStablecoinDeposit exception", e);
+    }
   }
 }
 

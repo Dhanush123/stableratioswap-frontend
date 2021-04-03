@@ -173,10 +173,6 @@ class App extends React.Component {
     return false;
   }
 
-  componentDidUpdate() {
-    console.log('updated component')    
-  }
-
   updateDepositState() {
     // let result = 
     this.state.utils.getAllStablecoinDeposits().then(result =>
@@ -185,21 +181,14 @@ class App extends React.Component {
     }));
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    if(nextState !== this.state || JSON.stringify(nextState.deposits) != JSON.stringify(this.state.deposits)){
-         this.forceUpdate();
-         return true;
-    }
-    return false;
- }
-
   render() {
-    console.log("render!!!!!",this.state.deposits);
+    // console.log("render!!!!!",this.state.deposits);
     // Ethereum wallets inject the window.ethereum object. If it hasn't been
     // injected, we instruct the user to install MetaMask.
     if (window.ethereum === undefined) {
       return <NoWalletDetected />;
     }
+    // console.log("render address",this.state.selectedAddress)
 
     if (!this.state.selectedAddress) {
       return (
@@ -226,7 +215,7 @@ class App extends React.Component {
         alignItems="center"
       >
         <GenericButton onClick={() => this.state.utils.createUser(this.state.selectedAddress)} label="Register Account" />
-        <GenericButton onClick={() => this.state.utils.deposit()} label="Get 100 TUSD Loan" />
+        <GenericButton onClick={() => this.state.utils.deposit(this.state.selectedAddress)} label="Get 100 TUSD Loan" />
         <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
         <GenericButton onClick={() => this.state.utils.swapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
       </Grid>
@@ -236,7 +225,6 @@ class App extends React.Component {
         justify="center"
         alignItems="center"
       >
-        {"deposits!!!"}{JSON.stringify(this.state.deposits)} 
         <DepositsGrid key={Object.values(this.state.deposits).reduce((a, b) => a + b)} deposits={this.state.deposits} /> 
       </Grid>
       </div>
