@@ -4,9 +4,10 @@ const DEPOSIT_AMOUNT = 100;//ethers.utils.parseEther('0.1');
 
 class Utils {
 
-  constructor(stableRatioSwap, provider) {
+  constructor(stableRatioSwap, provider, address) {
     this.stableRatioSwap = stableRatioSwap;
     this.provider = provider;
+    this.address = address;
   }
 
   convertRawToGridData(rawData) {
@@ -18,19 +19,19 @@ class Utils {
     return gridData;
   }
 
-  async createUser(selectedAddress) {
+  async createUser() {
     try {
-      let response = await this.stableRatioSwap.createUser(selectedAddress);
+      let response = await this.stableRatioSwap.createUser(this.address);
       console.log("createUser response!", response);    
     } catch(e) {
       console.log("createUser exception", e);
     }
   }
 
-  async deposit(selectedAddress) {
+  async deposit() {
     try {
-      console.log("deposit address",selectedAddress,DEPOSIT_AMOUNT);
-      (await this.stableRatioSwap.deposit(selectedAddress,DEPOSIT_AMOUNT)).wait().then((response) => {
+      console.log("deposit address",this.address,DEPOSIT_AMOUNT);
+      (await this.stableRatioSwap.deposit(this.address,DEPOSIT_AMOUNT)).wait().then((response) => {
         console.log("deposit response!",response);      
       });
     } catch(e) {
@@ -38,12 +39,12 @@ class Utils {
     }
   }
 
-  async getAllStablecoinDeposits(selectedAddress) {
+  async getAllStablecoinDeposits() {
     (await this.stableRatioSwap.getAllStablecoinDeposits()).wait().then((response) => {
       console.log("getAllStablecoinDeposits response!",response);      
     });
     let logs = await this.provider.getLogs({
-      from: selectedAddress,
+      from: this.address,
       topic: this.stableRatioSwap.interface.events.Deposit  
     });
     console.log('getAllStablecoinDeposits logs',logs);
@@ -69,6 +70,28 @@ class Utils {
       console.log("swapStablecoinDeposit response!", response);    
     } catch(e) {
         console.log("swapStablecoinDeposit exception", e);
+    }
+  }
+
+  async optInToggle() {
+    try {
+      (await this.stableRatioSwap.optInToggle()).wait().then((response) => {
+        console.log("optInToggle response!",response);      
+      });
+      let logs = await this.provider.getLogs({
+        from: this.address,
+        topic: this.stableRatioSwap.interface.events.OptInStatus  
+      });
+      console.log('optInToggle logs',logs);
+      //TODO: check if 0 or depositValues.length is latest log
+      let toggleValue = (logs === undefined || logs.length == 0) ? false : 
+      ethers.utils.defaultAbiCoder.decode(
+          ['bool'],
+          logs[0].data
+      );
+      return toggleValue;
+    } catch(e) {
+        console.log("optInToggle exception", e);
     }
   }
 }

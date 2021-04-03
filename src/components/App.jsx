@@ -25,6 +25,10 @@ import Utils from '../Utils';
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
 // to use when deploying to other networks.
 const HARDHAT_NETWORK_ID = '31337';
+const MAINNET_ID = '1';
+const KOVAN_ID = '42';
+const NETWORK_ERR_MSG = 'Please connect Metamask to Localhost:8545, mainnet, or Kovan';
+const DEPOSIT_AMOUNT = 100;//ethers.utils.parseEther('0.1');
 
 class App extends React.Component {
   constructor(props) {
@@ -46,7 +50,8 @@ class App extends React.Component {
         'USDT': 0.0,
         'DAI': 0.0,
         'BUSD': 0.0
-      }
+      },
+      optInStatus: false
     };
 
     this.state = this.initialState;
@@ -65,7 +70,7 @@ class App extends React.Component {
       this.provider.getSigner(0)
     );
 
-    this.setState({utils: new Utils(this.stableRatioSwap, this.provider)});
+    this.setState({utils: new Utils(this.stableRatioSwap, this.provider, this.state.selectedAddress)});
   }
 
   // This method just clears part of the state.
@@ -126,23 +131,30 @@ class App extends React.Component {
     this.setState(this.initialState);
   }
 
-  // This method checks if Metamask selected network is Localhost:8545
+  // This method checks if Metamask selected network is Localhost:8545, mainnet, or Kovan
   checkNetwork() {
-    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID) {
+    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID || window.ethereum.networkVersion === MAINNET_ID || window.ethereum.networkVersion === KOVAN_ID) {
       return true;
     }
 
     this.setState({
-      networkError: 'Please connect Metamask to Localhost:8545',
+      networkError: NETWORK_ERR_MSG,
     });
 
     return false;
   }
 
   updateDepositState() {
-    this.state.utils.getAllStablecoinDeposits().then(result =>
-      this.setState({deposits: result}, () => {
+    this.state.utils.getAllStablecoinDeposits().then(newDeposits =>
+      this.setState({deposits: newDeposits}, () => {
       console.log("deposits updateDepositState",this.state.deposits)
+    }));
+  }
+
+  updateOptInToggle() {
+    this.state.utils.optInToggle().then(newOptInStatus =>
+      this.setState({optInStatus: newOptInStatus}, () => {
+      console.log("optInToggle updateOptInToggle",this.state.optInStatus)
     }));
   }
 
@@ -163,6 +175,8 @@ class App extends React.Component {
       );
     }
 
+    let optInStatusLabel = this.state.optInStatus ? 'Out of' : 'In to';
+
     return (
       <div
         style={{
@@ -177,10 +191,11 @@ class App extends React.Component {
         justify="center"
         alignItems="center"
       >
-        <GenericButton onClick={() => this.state.utils.createUser(this.state.selectedAddress)} label="Register Account" />
-        <GenericButton onClick={() => this.state.utils.deposit(this.state.selectedAddress)} label="Get 100 TUSD Loan" />
+        <GenericButton onClick={() => this.state.utils.createUser()} label="Register Account" />
+        <GenericButton onClick={() => this.state.utils.deposit(DEPOSIT_AMOUNT)} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} />
         <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
         <GenericButton onClick={() => this.state.utils.swapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
+        <GenericButton onClick={() => this.updateOptInToggle()} label={`Opt ${optInStatusLabel} automatic swapping`} />
       </Grid>
       <Grid
         container
@@ -188,7 +203,7 @@ class App extends React.Component {
         justify="center"
         alignItems="center"
       >
-        <DepositsGrid key={Object.values(this.state.deposits).reduce((a, b) => a + b)} deposits={this.state.deposits} /> 
+        <DepositsGrid deposits={this.state.deposits} /> 
       </Grid>
       </div>
     );

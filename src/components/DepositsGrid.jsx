@@ -17,7 +17,7 @@ export default function DepositsGrid(props) {
     return (
       transformedData.length > 0 ?
         (
-          <div style={{ autoHeight: true, width: '50%' }}>
+          <div style={{ autoHeight: true, width: '40%' }}>
             <DataGrid rows={transformedData} columns={columns} autoHeight={true} autoPageSize={true} />
           </div>
         )
