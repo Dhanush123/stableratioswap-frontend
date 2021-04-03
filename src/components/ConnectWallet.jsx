@@ -8,7 +8,6 @@ export function ConnectWallet({ connectWallet, networkError, dismiss }) {
     <div className="container">
       <div className="row justify-content-md-center">
         <div className="col-12 text-center">
-          {/* Metamask network should be set to Localhost:8545. */}
           {networkError && (
             <NetworkErrorMessage 
               message={networkError} 
