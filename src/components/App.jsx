@@ -5,8 +5,11 @@ import { ethers } from 'ethers';
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
-import TokenArtifact from "../contracts/StableRatioSwap.json";
+import StableRatioSwapArtifact from "../contracts/StableRatioSwap.json";
 import contractAddress from "../contracts/contract-address.json";
+
+import MockStableRatioSwapArtifact from "../contracts/MockStableRatioSwap.json";
+import mockContractAddress from "../contracts/mock-contract-address.json";
 
 // All the logic of this dapp is contained in the Dapp component.
 // These other components are just presentational ones: they don't have any
@@ -45,11 +48,11 @@ class App extends React.Component {
       networkError: undefined,
       utils: undefined,
       deposits: {
-        'TUSD': 0.0,
-        'USDC': 0.0,
-        'USDT': 0.0,
-        'DAI': 0.0,
-        'BUSD': 0.0
+        'TUSD': {'value':0,'decimals':2},
+        'USDC': {'value':0,'decimals':2},
+        'USDT': {'value':0,'decimals':2},
+        'DAI': {'value':0,'decimals':2},
+        'BUSD': {'value':0,'decimals':2}
       },
       optInStatus: false
     };
@@ -64,11 +67,20 @@ class App extends React.Component {
 
     // When, we initialize the contract using that provider and the token's
     // artifact. You can do this same thing with your contracts.
-    this.stableRatioSwap = new ethers.Contract(
-      contractAddress.StableRatioSwap,
-      TokenArtifact.abi,
-      this.provider.getSigner(0)
-    );
+    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID || window.ethereum.networkVersion === KOVAN_ID) {
+      this.stableRatioSwap = new ethers.Contract(
+        mockContractAddress.MockStableRatioSwap,
+        MockStableRatioSwapArtifact.abi,
+        this.provider.getSigner(0)
+      );
+    }
+    else if (window.ethereum.networkVersion === MAINNET_ID) {
+      this.stableRatioSwap = new ethers.Contract(
+        contractAddress.StableRatioSwap,
+        StableRatioSwapArtifact.abi,
+        this.provider.getSigner(0)
+      );
+    }
 
     this.setState({utils: new Utils(this.stableRatioSwap, this.provider, this.state.selectedAddress)});
   }

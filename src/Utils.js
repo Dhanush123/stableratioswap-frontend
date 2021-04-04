@@ -13,7 +13,7 @@ class Utils {
   convertRawToGridData(rawData) {
     let gridData = []
     Object.keys(rawData).map((key, i) => {
-      gridData.push({id: i, coin: key, depositAmount: rawData[key]})
+      gridData.push({id: i, coin: key, depositAmount: rawData[key]['value']/(10**rawData[key]['decimals'])})
     })
     console.log("gridData",gridData);
     return gridData;
@@ -49,17 +49,19 @@ class Utils {
     });
     console.log('getAllStablecoinDeposits logs',logs);
     //TODO: check if 0 or depositValues.length is latest log
-    let depositValues = (logs === undefined || logs.length == 0) ? [0.0,0.0,0.0,0.0,0.0] : 
+    let depositValues = (logs === undefined || logs.length == 0) ? [0,0,0,0,0,0,0,0,0,0] : 
     ethers.utils.defaultAbiCoder.decode(
         [ 'uint', 'uint', 'uint', 'uint','uint' ],
         logs[0].data
     ).map(bigNum => bigNum.toNumber());
     let depositMap = {};
-    depositMap['TUSD'] = depositValues[0];
-    depositMap['USDC'] = depositValues[1];
-    depositMap['USDT'] = depositValues[2];
-    depositMap['DAI'] = depositValues[3];
-    depositMap['BUSD'] = depositValues[4];
+
+    depositMap['TUSD'] = {'value':depositValues[0],'decimals':depositValues[1]};
+    depositMap['USDC'] = {'value':depositValues[2],'decimals':depositValues[3]};
+    depositMap['USDT'] = {'value':depositValues[4],'decimals':depositValues[5]};
+    depositMap['DAI'] = {'value':depositValues[6],'decimals':depositValues[7]};
+    depositMap['BUSD'] = {'value':depositValues[8],'decimals':depositValues[9]};
+
     console.log('depositMap',depositMap);
     return depositMap;
   }
