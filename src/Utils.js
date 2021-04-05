@@ -21,7 +21,7 @@ class Utils {
 
   async createUser() {
     try {
-      let response = await this.stableRatioSwap.createUser(this.address);
+      let response = await this.stableRatioSwap.createUser();
       console.log("createUser response!", response);    
     } catch(e) {
       console.log("createUser exception", e);
@@ -44,6 +44,7 @@ class Utils {
       console.log("getAllStablecoinDeposits response!",response);      
     });
     let logs = await this.provider.getLogs({
+      fromBlock: 'latest',
       from: this.address,
       topic: this.stableRatioSwap.interface.events.Deposit  
     });
@@ -81,6 +82,7 @@ class Utils {
         console.log("optInToggle response!",response);      
       });
       let logs = await this.provider.getLogs({
+        fromBlock: 'latest',
         from: this.address,
         topic: this.stableRatioSwap.interface.events.OptInStatus  
       });
