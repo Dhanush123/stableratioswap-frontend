@@ -19,10 +19,10 @@ import { ConnectWallet } from './ConnectWallet';
 
 import Grid from '@material-ui/core/Grid';
 
-// import {initializeLendingPool} from '../Aave';
 import GenericButton from './GenericButton';
 import DepositsGrid from './DepositsGrid';
 import Utils from '../Utils';
+import BlockchainMessagesTable from './BlockchainMessagesTable';
 
 // This is the Hardhat Network id, you might change it in the hardhat.config.js
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
@@ -37,12 +37,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    // We store multiple things in Dapp's state.
-    // You don't need to follow this pattern, but it's an useful example.
     this.initialState = {
-      // The info of the token (i.e. It's Name and symbol)
-      tokenData: undefined,
-      // The user's address and balance
       selectedAddress: undefined,
       transactionError: undefined,
       networkError: undefined,
@@ -54,7 +49,8 @@ class App extends React.Component {
         'DAI': {'value':0,'decimals':2},
         'BUSD': {'value':0,'decimals':2}
       },
-      optInStatus: false
+      optInStatus: false,
+      blockchainMessages: []
     };
 
     this.state = this.initialState;
@@ -65,8 +61,6 @@ class App extends React.Component {
     // We first initialize ethers by creating a provider using window.ethereum
     this.provider = new ethers.providers.Web3Provider(window.ethereum);
 
-    // When, we initialize the contract using that provider and the token's
-    // artifact. You can do this same thing with your contracts.
     if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID || window.ethereum.networkVersion === KOVAN_ID) {
       this.stableRatioSwap = new ethers.Contract(
         mockContractAddress.MockStableRatioSwap,
@@ -85,7 +79,6 @@ class App extends React.Component {
     this.setState({utils: new Utils(this.stableRatioSwap, this.provider, this.state.selectedAddress)});
   }
 
-  // This method just clears part of the state.
   dismissNetworkError() {
     this.setState({ networkError: undefined });
   }
@@ -103,16 +96,12 @@ class App extends React.Component {
   }
 
   async connectWallet() {
-    // This method is run when the user clicks the Connect. It connects the
-    // dapp to the user's wallet, and initializes it.
+    //connects dapp to wallet when user clicks on connect wallet button
 
-    // To connect to the user's wallet, we have to run this method.
-    // It returns a promise that will resolve to the user's address.
     const [selectedAddress] = await window.ethereum.enable();
     console.log('selectedAddress',selectedAddress);
     // Once we have the address, we can initialize the application.
 
-    // First we check the network
     if (!this.checkNetwork()) {
       return;
     }
@@ -159,15 +148,49 @@ class App extends React.Component {
   updateDepositState() {
     this.state.utils.getAllStablecoinDeposits().then(newDeposits =>
       this.setState({deposits: newDeposits}, () => {
-      console.log("deposits updateDepositState",this.state.deposits)
+        console.log("deposits updateDepositState",this.state.deposits)
+        this.setState(prevState => ({
+          blockchainMessages: [...prevState.blockchainMessages, `Successfully fetched new deposit data`]
+        }))
     }));
   }
 
   updateOptInToggle() {
     this.state.utils.optInToggle().then(newOptInStatus =>
       this.setState({optInStatus: newOptInStatus}, () => {
-      console.log("optInToggle updateOptInToggle",this.state.optInStatus)
+      console.log("optInToggle updateOptInToggle",this.state.optInStatus);
+      this.setState(prevState => ({
+        blockchainMessages: [...prevState.blockchainMessages, `User opt-in status for auto-swapping assets: ${this.state.optInStatus}`]
+      }))
     }));
+  }
+
+  updateCreateUser() {
+    this.state.utils.createUser().then(createUserStatus => {
+      createUserStatus = createUserStatus === undefined ? "Error" : createUserStatus;
+      console.log("optInToggle updateOptInToggle",this.state.optInStatus)
+      this.setState(prevState => ({
+        blockchainMessages: [...prevState.blockchainMessages, `User added to app status: ${createUserStatus}`]
+      }))
+    });
+  }
+
+  updateSwapStablecoinDeposit() {
+    this.state.utils.swapStablecoinDeposit().then(swapStatus => {
+      swapStatus = swapStatus === undefined ? "Error" : swapStatus;
+      this.setState(prevState => ({
+        blockchainMessages: [...prevState.blockchainMessages, `Swap TUSD deposit status: ${swapStatus}`]
+      }))
+    });
+  }
+
+  updateDeposit() {
+    this.state.utils.deposit().then(depositStatus => {
+      depositStatus = depositStatus === undefined ? "Error" : depositStatus;
+      this.setState(prevState => ({
+        blockchainMessages: [...prevState.blockchainMessages, `Send TUSD deposit status: ${depositStatus}`]
+      }))
+    });
   }
 
   render() {
@@ -203,10 +226,10 @@ class App extends React.Component {
         justify="center"
         alignItems="center"
       >
-        <GenericButton onClick={() => this.state.utils.createUser()} label="Register Account" />
-        <GenericButton onClick={() => this.state.utils.deposit(DEPOSIT_AMOUNT)} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} />
+        <GenericButton onClick={() => this.updateCreateUser()} label="Register Account" />
+        <GenericButton onClick={() => this.updateDeposit()} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} />
         <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
-        <GenericButton onClick={() => this.state.utils.swapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
+        <GenericButton onClick={() => this.updateSwapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
         <GenericButton onClick={() => this.updateOptInToggle()} label={`Opt ${optInStatusLabel} automatic swapping`} />
       </Grid>
       <Grid
@@ -216,6 +239,14 @@ class App extends React.Component {
         alignItems="center"
       >
         <DepositsGrid deposits={this.state.deposits} /> 
+      </Grid>
+      <Grid
+        container
+        direction="row"
+        justify="center"
+        alignItems="center"
+      >
+        <BlockchainMessagesTable blockchainMessages={this.state.blockchainMessages} /> 
       </Grid>
       </div>
     );

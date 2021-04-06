@@ -21,21 +21,47 @@ class Utils {
 
   async createUser() {
     try {
-      let response = await this.stableRatioSwap.createUser();
-      console.log("createUser response!", response);    
+      (await this.stableRatioSwap.createUser()).wait().then((response) => {
+        console.log("createUser response!",response);      
+      });
+      let logs = await this.provider.getLogs({
+        fromBlock: 'latest',
+        from: this.address,
+        topic: this.stableRatioSwap.interface.events.CreateUser  
+      });
+      console.log('optInToggle logs',logs);
+      //TODO: check if 0 or depositValues.length is latest log
+      let createUserStatus = (logs === undefined || logs.length == 0) ? false : 
+      ethers.utils.defaultAbiCoder.decode(
+          ['bool'],
+          logs[0].data
+      );
+      return createUserStatus;
     } catch(e) {
-      console.log("createUser exception", e);
+        console.log("createUser exception", e);
     }
   }
 
   async deposit() {
     try {
-      console.log("deposit address",this.address,DEPOSIT_AMOUNT);
-      (await this.stableRatioSwap.deposit(this.address,DEPOSIT_AMOUNT)).wait().then((response) => {
+      (await this.stableRatioSwap.deposit(DEPOSIT_AMOUNT,"TUSD",this.address)).wait().then((response) => {
         console.log("deposit response!",response);      
       });
+      let logs = await this.provider.getLogs({
+        fromBlock: 'latest',
+        from: this.address,
+        topic: this.stableRatioSwap.interface.events.Deposit  
+      });
+      console.log('deposit logs',logs);
+      //TODO: check if 0 or depositValues.length is latest log
+      let depositStatus = (logs === undefined || logs.length == 0) ? false : 
+      ethers.utils.defaultAbiCoder.decode(
+          ['bool'],
+          logs[0].data
+      );
+      return depositStatus;
     } catch(e) {
-      console.log("deposit exception", e);
+        console.log("deposit exception", e);
     }
   }
 
@@ -46,13 +72,13 @@ class Utils {
     let logs = await this.provider.getLogs({
       fromBlock: 'latest',
       from: this.address,
-      topic: this.stableRatioSwap.interface.events.Deposit  
+      topic: this.stableRatioSwap.interface.events.AllDeposits  
     });
     console.log('getAllStablecoinDeposits logs',logs);
     //TODO: check if 0 or depositValues.length is latest log
     let depositValues = (logs === undefined || logs.length == 0) ? [0,0,0,0,0,0,0,0,0,0] : 
     ethers.utils.defaultAbiCoder.decode(
-        [ 'uint', 'uint', 'uint', 'uint','uint' ],
+        ['uint', 'uint', 'uint', 'uint','uint','uint', 'uint', 'uint', 'uint','uint'],
         logs[0].data
     ).map(bigNum => bigNum.toNumber());
     let depositMap = {};
@@ -69,8 +95,22 @@ class Utils {
 
   async swapStablecoinDeposit() {
     try {
-      let response = await this.stableRatioSwap.swapStablecoinDeposit();
-      console.log("swapStablecoinDeposit response!", response);    
+      (await this.stableRatioSwap.swapStablecoinDeposit()).wait().then((response) => {
+        console.log("swapStablecoinDeposit response!",response);      
+      });
+      let logs = await this.provider.getLogs({
+        fromBlock: 'latest',
+        from: this.address,
+        topic: this.stableRatioSwap.interface.events.SwapStablecoinDeposit  
+      });
+      console.log('swapStablecoinDeposit logs',logs);
+      //TODO: check if 0 or depositValues.length is latest log
+      let swapStablecoinDepositStatus = (logs === undefined || logs.length == 0) ? false : 
+      ethers.utils.defaultAbiCoder.decode(
+          ['bool'],
+          logs[0].data
+      );
+      return swapStablecoinDepositStatus;
     } catch(e) {
         console.log("swapStablecoinDeposit exception", e);
     }
