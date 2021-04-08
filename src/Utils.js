@@ -93,9 +93,10 @@ class Utils {
     return depositMap;
   }
 
-  async swapStablecoinDeposit() {
+  async swapStablecoinDeposit(shouldForce) {
     try {
-      (await this.stableRatioSwap.swapStablecoinDeposit()).wait().then((response) => {
+      console.log("swapStablecoinDeposit shouldForce:",shouldForce);
+      (await this.stableRatioSwap.swapStablecoinDeposit(shouldForce)).wait().then((response) => {
         console.log("swapStablecoinDeposit response!",response);      
       });
       let logs = await this.provider.getLogs({

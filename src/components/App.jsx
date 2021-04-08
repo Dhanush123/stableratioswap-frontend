@@ -175,11 +175,12 @@ class App extends React.Component {
     });
   }
 
-  updateSwapStablecoinDeposit() {
-    this.state.utils.swapStablecoinDeposit().then(swapStatus => {
+  updateSwapStablecoinDeposit(shouldForce) {
+    this.state.utils.swapStablecoinDeposit(shouldForce).then(swapStatus => {
       swapStatus = swapStatus === undefined ? "Error" : swapStatus;
+      let swapName =  shouldForce ? "Force Swap" : "Swap";
       this.setState(prevState => ({
-        blockchainMessages: [...prevState.blockchainMessages, `Swap TUSD deposit status: ${swapStatus}`]
+        blockchainMessages: [...prevState.blockchainMessages, `${swapName} TUSD deposit status: ${swapStatus}`]
       }))
     });
   }
@@ -229,7 +230,8 @@ class App extends React.Component {
         <GenericButton onClick={() => this.updateCreateUser()} label="Register Account" />
         <GenericButton onClick={() => this.updateDeposit()} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} />
         <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
-        <GenericButton onClick={() => this.updateSwapStablecoinDeposit()} label="Swap TUSD -> Highest APY Stablecoin" />
+        <GenericButton onClick={() => this.updateSwapStablecoinDeposit(false)} label="Swap TUSD" />
+        <GenericButton onClick={() => this.updateSwapStablecoinDeposit(true)} label="Force Swap TUSD" />
         <GenericButton onClick={() => this.updateOptInToggle()} label={`Opt ${optInStatusLabel} automatic swapping`} />
       </Grid>
       <Grid
