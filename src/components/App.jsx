@@ -43,11 +43,11 @@ class App extends React.Component {
       networkError: undefined,
       utils: undefined,
       deposits: {
-        'TUSD': {'value':0,'decimals':2},
-        'USDC': {'value':0,'decimals':2},
-        'USDT': {'value':0,'decimals':2},
-        'DAI': {'value':0,'decimals':2},
-        'BUSD': {'value':0,'decimals':2}
+        'TUSD': 0,
+        'USDC': 0,
+        'USDT': 0,
+        'DAI': 0,
+        'BUSD': 0
       },
       optInStatus: false,
       blockchainMessages: []
@@ -61,21 +61,21 @@ class App extends React.Component {
     // We first initialize ethers by creating a provider using window.ethereum
     this.provider = new ethers.providers.Web3Provider(window.ethereum);
 
-    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID || window.ethereum.networkVersion === KOVAN_ID) {
+    if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID) {
       this.stableRatioSwap = new ethers.Contract(
         mockContractAddress.MockStableRatioSwap,
         MockStableRatioSwapArtifact.abi,
         this.provider.getSigner(0)
       );
     }
-    else if (window.ethereum.networkVersion === MAINNET_ID) {
+    else if (window.ethereum.networkVersion === MAINNET_ID || window.ethereum.networkVersion === KOVAN_ID) {
       this.stableRatioSwap = new ethers.Contract(
         contractAddress.StableRatioSwap,
         StableRatioSwapArtifact.abi,
         this.provider.getSigner(0)
       );
     }
-
+    console.log("networkVersion",window.ethereum.networkVersion);
     this.setState({utils: new Utils(this.stableRatioSwap, this.provider, this.state.selectedAddress)});
   }
 
@@ -145,18 +145,21 @@ class App extends React.Component {
     return false;
   }
 
-  updateDepositState() {
-    this.state.utils.getAllStablecoinDeposits().then(newDeposits =>
+  async updateDepositState() {
+    console.log("this.state.utils",this.state.utils);
+    let newDeposits = await this.state.utils.getAllStablecoinDeposits();
+    // waiting.then(newDeposits =>
       this.setState({deposits: newDeposits}, () => {
         console.log("deposits updateDepositState",this.state.deposits)
         this.setState(prevState => ({
           blockchainMessages: [...prevState.blockchainMessages, `Successfully fetched new deposit data`]
         }))
-    }));
+    });
+    // );
   }
 
-  updateOptInToggle() {
-    this.state.utils.optInToggle().then(newOptInStatus =>
+  async updateOptInToggle() {
+    (await this.state.utils.optInToggle()).then(newOptInStatus =>
       this.setState({optInStatus: newOptInStatus}, () => {
       console.log("optInToggle updateOptInToggle",this.state.optInStatus);
       this.setState(prevState => ({
@@ -165,8 +168,8 @@ class App extends React.Component {
     }));
   }
 
-  updateCreateUser() {
-    this.state.utils.createUser().then(createUserStatus => {
+  async updateCreateUser() {
+    (await this.state.utils.createUser()).then(createUserStatus => {
       createUserStatus = createUserStatus === undefined ? "Error" : createUserStatus;
       console.log("optInToggle updateOptInToggle",this.state.optInStatus)
       this.setState(prevState => ({
@@ -175,8 +178,8 @@ class App extends React.Component {
     });
   }
 
-  updateSwapStablecoinDeposit(shouldForce) {
-    this.state.utils.swapStablecoinDeposit(shouldForce).then(swapStatus => {
+  async updateSwapStablecoinDeposit(shouldForce) {
+    (await this.state.utils.swapStablecoinDeposit(shouldForce)).then(swapStatus => {
       swapStatus = swapStatus === undefined ? "Error" : swapStatus;
       let swapName =  shouldForce ? "Force Swap" : "Swap";
       this.setState(prevState => ({
@@ -185,8 +188,8 @@ class App extends React.Component {
     });
   }
 
-  updateDeposit() {
-    this.state.utils.deposit().then(depositStatus => {
+  async updateDeposit() {
+    (await this.state.utils.deposit()).then(depositStatus => {
       depositStatus = depositStatus === undefined ? "Error" : depositStatus;
       this.setState(prevState => ({
         blockchainMessages: [...prevState.blockchainMessages, `Send TUSD deposit status: ${depositStatus}`]
