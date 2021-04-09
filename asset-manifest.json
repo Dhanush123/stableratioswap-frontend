@@ -1,20 +1,20 @@
 {
   "files": {
     "main.css": "/stableratioswap-frontend/static/css/main.6dea0f05.chunk.css",
-    "main.js": "/stableratioswap-frontend/static/js/main.2646623d.chunk.js",
-    "main.js.map": "/stableratioswap-frontend/static/js/main.2646623d.chunk.js.map",
-    "runtime-main.js": "/stableratioswap-frontend/static/js/runtime-main.6dd6aed5.js",
-    "runtime-main.js.map": "/stableratioswap-frontend/static/js/runtime-main.6dd6aed5.js.map",
-    "static/js/2.39c99cd8.chunk.js": "/stableratioswap-frontend/static/js/2.39c99cd8.chunk.js",
-    "static/js/2.39c99cd8.chunk.js.map": "/stableratioswap-frontend/static/js/2.39c99cd8.chunk.js.map",
+    "main.js": "/stableratioswap-frontend/static/js/main.38f008df.chunk.js",
+    "main.js.map": "/stableratioswap-frontend/static/js/main.38f008df.chunk.js.map",
+    "runtime-main.js": "/stableratioswap-frontend/static/js/runtime-main.bc4d0012.js",
+    "runtime-main.js.map": "/stableratioswap-frontend/static/js/runtime-main.bc4d0012.js.map",
+    "static/js/2.1a587377.chunk.js": "/stableratioswap-frontend/static/js/2.1a587377.chunk.js",
+    "static/js/2.1a587377.chunk.js.map": "/stableratioswap-frontend/static/js/2.1a587377.chunk.js.map",
     "index.html": "/stableratioswap-frontend/index.html",
     "static/css/main.6dea0f05.chunk.css.map": "/stableratioswap-frontend/static/css/main.6dea0f05.chunk.css.map",
-    "static/js/2.39c99cd8.chunk.js.LICENSE.txt": "/stableratioswap-frontend/static/js/2.39c99cd8.chunk.js.LICENSE.txt"
+    "static/js/2.1a587377.chunk.js.LICENSE.txt": "/stableratioswap-frontend/static/js/2.1a587377.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.6dd6aed5.js",
-    "static/js/2.39c99cd8.chunk.js",
+    "static/js/runtime-main.bc4d0012.js",
+    "static/js/2.1a587377.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
-    "static/js/main.2646623d.chunk.js"
+    "static/js/main.38f008df.chunk.js"
   ]
 }
