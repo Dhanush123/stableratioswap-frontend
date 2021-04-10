@@ -31,7 +31,7 @@ const HARDHAT_NETWORK_ID = '31337';
 const MAINNET_ID = '1';
 const KOVAN_ID = '42';
 const NETWORK_ERR_MSG = 'Please connect Metamask to Localhost:8545, mainnet, or Kovan';
-const DEPOSIT_AMOUNT = 100;//ethers.utils.parseEther('0.1');
+// const DEPOSIT_AMOUNT = 100;//ethers.utils.parseEther('0.1');
 
 class App extends React.Component {
   constructor(props) {
@@ -54,7 +54,6 @@ class App extends React.Component {
     };
 
     this.state = this.initialState;
-    this.updateDepositState = this.updateDepositState.bind(this);
   }
 
   async intializeEthers() {
@@ -68,12 +67,13 @@ class App extends React.Component {
         this.provider.getSigner(0)
       );
     }
-    else if (window.ethereum.networkVersion === MAINNET_ID || window.ethereum.networkVersion === KOVAN_ID) {
+    else if (window.ethereum.networkVersion === KOVAN_ID) {
       this.stableRatioSwap = new ethers.Contract(
         contractAddress.StableRatioSwap,
         StableRatioSwapArtifact.abi,
         this.provider.getSigner(0)
       );
+      console.log("StableRatioSwap Kovan address",contractAddress);
     }
     console.log("networkVersion",window.ethereum.networkVersion);
     this.setState({utils: new Utils(this.stableRatioSwap, this.provider, this.state.selectedAddress)});
@@ -146,56 +146,56 @@ class App extends React.Component {
   }
 
   async updateDepositState() {
-    console.log("this.state.utils",this.state.utils);
     let newDeposits = await this.state.utils.getAllStablecoinDeposits();
-    // waiting.then(newDeposits =>
+    if (newDeposits && Object.keys(newDeposits).length === 0 && newDeposits.constructor === Object) {
+      this.setState(prevState => ({
+        blockchainMessages: [...prevState.blockchainMessages, `Failed to fetch latest deposit data`]
+      }));
+    } else {
       this.setState({deposits: newDeposits}, () => {
         console.log("deposits updateDepositState",this.state.deposits)
         this.setState(prevState => ({
-          blockchainMessages: [...prevState.blockchainMessages, `Successfully fetched new deposit data`]
-        }))
-    });
-    // );
+          blockchainMessages: [...prevState.blockchainMessages, `Successfully fetched latest deposit data`]
+        }));
+      });
+    }
   }
 
   async updateOptInToggle() {
-    (await this.state.utils.optInToggle()).then(newOptInStatus =>
-      this.setState({optInStatus: newOptInStatus}, () => {
+    let newOptInStatus = await this.state.utils.optInToggle();
+    this.setState({optInStatus: newOptInStatus}, () => {
       console.log("optInToggle updateOptInToggle",this.state.optInStatus);
       this.setState(prevState => ({
         blockchainMessages: [...prevState.blockchainMessages, `User opt-in status for auto-swapping assets: ${this.state.optInStatus}`]
       }))
-    }));
+    });
   }
 
   async updateCreateUser() {
-    (await this.state.utils.createUser()).then(createUserStatus => {
-      createUserStatus = createUserStatus === undefined ? "Error" : createUserStatus;
-      console.log("optInToggle updateOptInToggle",this.state.optInStatus)
-      this.setState(prevState => ({
-        blockchainMessages: [...prevState.blockchainMessages, `User added to app status: ${createUserStatus}`]
-      }))
-    });
+    let createUserStatus = await this.state.utils.createUser();
+    console.log("createUser updateOptInToggle",this.state.createUserStatus);
+    this.setState(prevState => ({
+      blockchainMessages: [...prevState.blockchainMessages, `User added to app status: ${createUserStatus}`]
+    }));
   }
 
   async updateSwapStablecoinDeposit(shouldForce) {
-    (await this.state.utils.swapStablecoinDeposit(shouldForce)).then(swapStatus => {
-      swapStatus = swapStatus === undefined ? "Error" : swapStatus;
-      let swapName =  shouldForce ? "Force Swap" : "Swap";
-      this.setState(prevState => ({
-        blockchainMessages: [...prevState.blockchainMessages, `${swapName} TUSD deposit status: ${swapStatus}`]
-      }))
-    });
+    let swapStatusAndRatio = await this.state.utils.swapStablecoinDeposit(shouldForce);
+    let swapStatus = swapStatusAndRatio["status"];
+    let assetReserveRatio = swapStatusAndRatio["ratio"];
+    swapStatus = swapStatus === undefined ? "Error" : swapStatus;
+    let swapName =  shouldForce ? "Force Swap" : "Swap";
+    this.setState(prevState => ({
+      blockchainMessages: [...prevState.blockchainMessages, `${swapName} TUSD deposit status: ${swapStatus}, TUSD asset/reserve ratio: ${assetReserveRatio}`]
+    }));
   }
 
-  async updateDeposit() {
-    (await this.state.utils.deposit()).then(depositStatus => {
-      depositStatus = depositStatus === undefined ? "Error" : depositStatus;
-      this.setState(prevState => ({
-        blockchainMessages: [...prevState.blockchainMessages, `Send TUSD deposit status: ${depositStatus}`]
-      }))
-    });
-  }
+  // async updateDeposit() {
+  //   let depositStatus = await this.state.utils.deposit();
+  //   this.setState(prevState => ({
+  //     blockchainMessages: [...prevState.blockchainMessages, `Send TUSD deposit status: ${depositStatus}`]
+  //   }));
+  // }
 
   render() {
     // Ethereum wallets inject the window.ethereum object. If it hasn't been
@@ -231,7 +231,7 @@ class App extends React.Component {
         alignItems="center"
       >
         <GenericButton onClick={() => this.updateCreateUser()} label="Register Account" />
-        <GenericButton onClick={() => this.updateDeposit()} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} />
+        {/* <GenericButton onClick={() => this.updateDeposit()} label={`Deposit ${DEPOSIT_AMOUNT} TUSD`} /> */}
         <GenericButton onClick={() => this.updateDepositState()} label="Refresh Deposits" />
         <GenericButton onClick={() => this.updateSwapStablecoinDeposit(false)} label="Swap TUSD" />
         <GenericButton onClick={() => this.updateSwapStablecoinDeposit(true)} label="Force Swap TUSD" />
