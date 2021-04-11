@@ -1,19 +1,13 @@
 import React from 'react';
 
-// We'll use ethers to interact with the Ethereum network and our contract
 import { ethers } from 'ethers';
 
-// We import the contract's artifacts and address here, as we are going to be
-// using them with ethers
 import StableRatioSwapArtifact from "../contracts/StableRatioSwap.json";
 import contractAddress from "../contracts/contract-address.json";
 
 import MockStableRatioSwapArtifact from "../contracts/MockStableRatioSwap.json";
 import mockContractAddress from "../contracts/mock-contract-address.json";
 
-// All the logic of this dapp is contained in the Dapp component.
-// These other components are just presentational ones: they don't have any
-// logic. They just render HTML.
 import { NoWalletDetected } from './NoWalletDetected';
 import { ConnectWallet } from './ConnectWallet';
 
@@ -24,9 +18,7 @@ import DepositsGrid from './DepositsGrid';
 import Utils from '../Utils';
 import BlockchainMessagesTable from './BlockchainMessagesTable';
 
-// This is the Hardhat Network id, you might change it in the hardhat.config.js
-// Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
-// to use when deploying to other networks.
+// list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
 const HARDHAT_NETWORK_ID = '31337';
 const MAINNET_ID = '1';
 const KOVAN_ID = '42';
@@ -180,14 +172,30 @@ class App extends React.Component {
   }
 
   async updateSwapStablecoinDeposit(shouldForce) {
-    let swapStatusAndRatio = await this.state.utils.swapStablecoinDeposit(shouldForce);
-    let swapStatus = swapStatusAndRatio["status"];
-    let assetReserveRatio = swapStatusAndRatio["ratio"];
+    let swapStablecoinDepositSummary = await this.state.utils.swapStablecoinDeposit(shouldForce);
+    let swapStatus = swapStablecoinDepositSummary["status"];
+    let assetReserveRatio = swapStablecoinDepositSummary["ratio"];
+    let swapToTokenName = swapStablecoinDepositSummary["swapToTokenName"];
+    let amountToSwap = swapStablecoinDepositSummary["amountToSwap"];
     swapStatus = swapStatus === undefined ? "Error" : swapStatus;
     let swapName =  shouldForce ? "Force Swap" : "Swap";
     this.setState(prevState => ({
       blockchainMessages: [...prevState.blockchainMessages, `${swapName} TUSD deposit status: ${swapStatus}, TUSD asset/reserve ratio: ${assetReserveRatio}`]
-    }));
+    }), () => {
+      console.log("now sudoUpdateDepositState");
+      this.sudoUpdateDepositState(swapToTokenName, amountToSwap);
+    });
+  }
+
+  sudoUpdateDepositState(swapToTokenName, amountToSwap) {
+    let depositsCopy = JSON.parse(JSON.stringify(this.state.deposits));
+    console.log("depositsCopy",depositsCopy);
+    depositsCopy['TUSD']=0;
+    depositsCopy[swapToTokenName]=String(parseInt(depositsCopy[swapToTokenName])+parseInt(amountToSwap));
+    console.log("depositsCopy updated",depositsCopy);
+    this.setState({
+      deposits: depositsCopy
+    });
   }
 
   // async updateDeposit() {

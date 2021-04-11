@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { DataGrid } from '@material-ui/data-grid';
 import PropTypes from 'prop-types';
-import Utils from '../Utils';
 
 const columns = [
   { field: 'coin', headerName: 'Coin', width: 100 },
@@ -10,9 +9,18 @@ const columns = [
 
 const ERR_MSG = "No stablecoin deposits on Aave yet!";
 
+const convertRawToGridData = (rawData) => {
+  let gridData = []
+  Object.keys(rawData).map((key, i) => {
+    gridData.push({id: i, coin: key, depositAmount: rawData[key]})
+  })
+  console.log("gridData",gridData);
+  return gridData;
+}
+
 export default function DepositsGrid(props) {
   if (props.deposits !== undefined) {
-    let transformedData = new Utils(undefined,undefined).convertRawToGridData(props.deposits);
+    let transformedData = convertRawToGridData(props.deposits);
     console.log("props.deposits transformedData",transformedData);
     return (
       transformedData.length > 0 ?
@@ -28,5 +36,6 @@ export default function DepositsGrid(props) {
 }
 
 DepositsGrid.propTypes = {
-  deposits: PropTypes.any
+  deposits: PropTypes.array,
 }
+
