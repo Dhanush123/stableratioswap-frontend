@@ -91,10 +91,14 @@ class Utils {
       console.log("swapStablecoinDeposit response! events",txwait.events); 
       let filterValues = await this.stableRatioSwap.queryFilter(this.stableRatioSwap.filters.SwapStablecoinDeposit());
       console.log("filterValues",filterValues);
+      console.log("print ALL events decoded");
+      for (var i=0; i < filterValues.length; i++) {
+        console.log(`event ${i}`,ethers.utils.defaultAbiCoder.decode(['bool', 'uint'], filterValues[i].data));
+      }
       let latest = filterValues[filterValues.length - 1].data;
-      console.log("latest",latest);
+      console.log("latest event raw",latest);
       let swapStablecoinDepositStatusAndRatio = ethers.utils.defaultAbiCoder.decode(['bool', 'uint'], latest);
-      console.log("swapStablecoinDepositStatusAndRatio",swapStablecoinDepositStatusAndRatio);
+      console.log("latest swapStablecoinDepositStatusAndRatio",swapStablecoinDepositStatusAndRatio);
       return {"status":swapStablecoinDepositStatusAndRatio[0],
               "ratio":swapStablecoinDepositStatusAndRatio[1]/10**4};     
     } catch(e) {
