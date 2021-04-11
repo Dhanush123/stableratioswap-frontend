@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/stableratioswap-frontend/static/css/main.6dea0f05.chunk.css",
-    "main.js": "/stableratioswap-frontend/static/js/main.853fedcd.chunk.js",
-    "main.js.map": "/stableratioswap-frontend/static/js/main.853fedcd.chunk.js.map",
+    "main.js": "/stableratioswap-frontend/static/js/main.13c00d1b.chunk.js",
+    "main.js.map": "/stableratioswap-frontend/static/js/main.13c00d1b.chunk.js.map",
     "runtime-main.js": "/stableratioswap-frontend/static/js/runtime-main.bc4d0012.js",
     "runtime-main.js.map": "/stableratioswap-frontend/static/js/runtime-main.bc4d0012.js.map",
     "static/js/2.d38f2088.chunk.js": "/stableratioswap-frontend/static/js/2.d38f2088.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.bc4d0012.js",
     "static/js/2.d38f2088.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
-    "static/js/main.853fedcd.chunk.js"
+    "static/js/main.13c00d1b.chunk.js"
   ]
 }
