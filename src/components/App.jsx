@@ -183,7 +183,9 @@ class App extends React.Component {
       blockchainMessages: [...prevState.blockchainMessages, `${swapName} TUSD deposit status: ${swapStatus}, TUSD asset/reserve ratio: ${assetReserveRatio}`]
     }), () => {
       console.log("now sudoUpdateDepositState");
-      this.sudoUpdateDepositState(swapToTokenName, amountToSwap);
+      if (swapStatus != "Error") {
+        this.sudoUpdateDepositState(swapToTokenName, amountToSwap);
+      }
     });
   }
 
